@@ -21,7 +21,7 @@ def export(stats):
         statswriter.writerow(row)
 
 def main():
-    log = getlog('/opt/lampp/htdocs/ibnetwork')
+    log = getlog('/path/to/repo')
     stats = splitinto(log)
     export(stats)
     
