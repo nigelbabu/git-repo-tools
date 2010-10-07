@@ -1,5 +1,7 @@
 #!/usr/bin/python
 #
+#    Git graph prepares commit graphs of git repositories
+#
 #    Copyright (C) 2010  Nigel Babu
 #
 #    This program is free software: you can redistribute it and/or modify
