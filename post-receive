@@ -1,11 +1,23 @@
 #!/usr/bin/python -Wignore
-# post-receive hook to update on server
-# Copyright Nigel Babu 2010
-# StrApp Business Solutions
-# Updated local webserver with latest git 
-# branch code.  Uses rsync.  Able to filter
-# out files based on .rysncignore
-# Things to do: ping people on Jabber when pushed
+#
+#    This hook deploys code onto the live server.  Its not perfect
+#    and is a work in progress.  Feel free to fork and adopt. I 
+#    faced problems with rsync.  Will be fixed soon.
+#
+#    Copyright (C) 2010  Nigel Babu
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import shutil
@@ -88,7 +100,7 @@ def send_xmpp(team, commit):
 
 def main():
 	deploy = '/home/git/deploy'
-	dest = '/opt/lampp/htdocs/wwstudy'
+	dest = '/path/to/deploy'
 	team = ['team1@strappserver.net', 'team2@strappserver.net', 'team3@strappserver.net']
 	last_commit = getcommit()
 	repo_name = getrepo()
