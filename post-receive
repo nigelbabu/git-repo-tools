@@ -1,0 +1,109 @@
+#!/usr/bin/python -Wignore
+# post-receive hook to update on server
+# Copyright Nigel Babu 2010
+# StrApp Business Solutions
+# Updated local webserver with latest git 
+# branch code.  Uses rsync.  Able to filter
+# out files based on .rysncignore
+# Things to do: ping people on Jabber when pushed
+
+import os
+import shutil
+import subprocess
+import sys
+import time
+import warnings
+import xmpp
+
+#get last commit
+def getcommit():
+	get_cmd = 'git log --pretty=format:"New change on {repository} by %an:  %s" -n 1'
+	p = subprocess.Popen(get_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	output, errors = p.communicate()
+	return output
+
+# Get the name of the current repository
+def getrepo():
+	git_repo_path = os.path.split(os.getcwd())
+	repo = git_repo_path[1].partition('.')
+	return repo[0]
+
+#create the .deploy folder
+def create_folder(deploy):
+	try:
+		os.mkdir(deploy)
+	except OSError, e:
+		if(e.errno != 17):
+			print "%s: %s" %(e.__class__.__name__, e)
+			sys.exit(1)
+
+#update the repo or create if it doesn't exist
+def update_repo(deploy, repo):
+	path_to_repo = deploy + "/" + repo
+	if(os.path.exists(path_to_repo)):
+		repo_path = deploy + "/" + repo
+		pull_cmd = "env -i git pull"
+		p = subprocess.Popen(pull_cmd, shell=True, cwd=repo_path, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		output, errors = p.communicate()
+	else:
+		clone_cmd = "git clone -b master git://gitserver.com/%s.git %s/" %(repo, repo)
+		print clone_cmd
+		p = subprocess.Popen(clone_cmd, shell=True,cwd=deploy, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+		output, errors = p.communicate()
+	return output
+
+#rync everything to the webserver path
+def update_server(path, repo, dest):
+	path_to_copy = path + "/" + repo
+	rsync_cmd = "cp -rv %s/* %s" %(path_to_copy, dest)
+	p = subprocess.Popen(rsync_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	output, errors = p.communicate()
+	p = subprocess.Popen("chmod -R 777 %s/", shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+	change, problems = p.communicate()
+	return output
+
+#write log
+def write_log(path, name, gitlog, rsynclog):
+	file_path = path + "/" + name + ".log"
+	current_time = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime())
+	f = open(file_path, 'w')
+	f.write('\n%s\n%s\n%s' %(current_time, gitlog, rsynclog))
+	f.close()
+
+#ping the team with change
+def send_xmpp(team, commit):
+	jidparams={'jid' : 'commitbot@myserver.com/gitserver', 'password' : 'pass123'}
+	jid=xmpp.protocol.JID(jidparams['jid'])
+	cl=xmpp.Client(jid.getDomain(),debug=[])
+	con=cl.connect()
+	if not con:
+		print 'could not connect!'
+		sys.exit()
+	auth=cl.auth(jid.getNode(),jidparams['password'],resource=jid.getResource())
+	if not auth:
+		print 'could not authenticate!'
+		sys.exit()
+	for person in team:
+		id=cl.send(xmpp.protocol.Message(person,commit))
+
+def main():
+	deploy = '/home/git/deploy'
+	dest = '/opt/lampp/htdocs/wwstudy'
+	team = ['team1@strappserver.net', 'team2@strappserver.net', 'team3@strappserver.net']
+	last_commit = getcommit()
+	repo_name = getrepo()
+	last_commit_formatted = last_commit.replace('{repository}', repo_name)
+	create_folder(deploy)
+	gitlog = update_repo(deploy, repo_name)
+	rsynclog = update_server(deploy, repo_name, dest)
+	write_log(deploy, repo_name, gitlog, rsynclog)
+	send_xmpp(team, last_commit_formatted)
+	print "Web server updated, see log for details"
+
+if __name__ == "__main__":
+	sys.exit(main())
+	try:
+		sys.exit(main())
+	except Exception, e:
+		print "%s: %s" %(e.__class__.__name__, e)
+		sys.exit(1)
