@@ -1,0 +1,5 @@
+Git-repo-tools is a collection of tools meant to be used alongside a gitosis repository.  While there are newer tools like Gitorious around, these tools are meant to ease the life of sysadmins deploying gitosis.  If something does go wrong, please let me know so I can fix it.
+
+Of note, the log.py only generates data for now.  I want it to also generate graphs.  Perhaps when I have the time I'll add those.
+
+post-receive is a post-receive hook that deploys code.  I wanted it to work on rsync which failed for some reason.  I'm trying to get that to work and I'll update it once fixed

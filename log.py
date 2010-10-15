@@ -44,12 +44,8 @@ def main():
     export(stats)
     
 if __name__ == "__main__":
-    sys.exit(main())
     try:
         sys.exit(main())
     except Exception, e:
         print "%s: %s" %(e.__class__.__name__, e)
-        sys.exit(1)
-if __name__ == "__main__":
-    main()
-    
+        sys.exit(1)    
