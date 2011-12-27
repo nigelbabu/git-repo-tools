@@ -113,9 +113,8 @@ def main():
 	print "Web server updated, see log for details"
 
 if __name__ == "__main__":
-	sys.exit(main())
 	try:
-		sys.exit(main())
+		main()
 	except Exception, e:
 		print "%s: %s" %(e.__class__.__name__, e)
 		sys.exit(1)
